@@ -42,7 +42,7 @@ export function useWebSocket() {
         }
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const queryParams = token ? `?token=${encodeURIComponent(token)}` : '';
+        const queryParams = (token && !skipAuth) ? `?token=${encodeURIComponent(token)}` : '';
         wsUrl = `${protocol}//${window.location.host}${BASE_URL}/ws${queryParams}`;
       }
 
