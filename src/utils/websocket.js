@@ -9,7 +9,7 @@ export function useWebSocket() {
 
   useEffect(() => {
     connect();
-    
+
     return () => {
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
@@ -34,13 +34,16 @@ export function useWebSocket() {
       } else {
         // OSS mode: Connect to same host:port that served the page
         const token = localStorage.getItem('auth-token');
-        if (!token) {
+        const skipAuth = import.meta.env.VITE_SKIP_AUTH === 'true';
+
+        if (!token && !skipAuth) {
           console.warn('No authentication token found for WebSocket connection');
           return;
         }
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        wsUrl = `${protocol}//${window.location.host}${BASE_URL}/ws?token=${encodeURIComponent(token)}`;
+        const queryParams = token ? `?token=${encodeURIComponent(token)}` : '';
+        wsUrl = `${protocol}//${window.location.host}${BASE_URL}/ws${queryParams}`;
       }
 
       const websocket = new WebSocket(wsUrl);
@@ -62,7 +65,7 @@ export function useWebSocket() {
       websocket.onclose = () => {
         setIsConnected(false);
         setWs(null);
-        
+
         // Attempt to reconnect after 3 seconds
         reconnectTimeoutRef.current = setTimeout(() => {
           connect();
