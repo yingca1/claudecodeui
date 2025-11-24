@@ -61,13 +61,16 @@ function Shell({ selectedProject, selectedSession, initialCommand, isPlainShell 
         wsUrl = `${protocol}//${window.location.host}/shell`;
       } else {
         const token = localStorage.getItem('auth-token');
-        if (!token) {
+        const skipAuth = import.meta.env.VITE_SKIP_AUTH === 'true';
+
+        if (!token && !skipAuth) {
           console.error('No authentication token found for Shell WebSocket connection');
           return;
         }
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        wsUrl = `${protocol}//${window.location.host}/shell?token=${encodeURIComponent(token)}`;
+        const queryParams = (token && !skipAuth) ? `?token=${encodeURIComponent(token)}` : '';
+        wsUrl = `${protocol}//${window.location.host}/shell${queryParams}`;
       }
 
       ws.current = new WebSocket(wsUrl);
@@ -296,7 +299,7 @@ function Shell({ selectedProject, selectedSession, initialCommand, isPlainShell 
               data: text
             }));
           }
-        }).catch(() => {});
+        }).catch(() => { });
         return false;
       }
 
